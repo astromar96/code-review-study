@@ -1,34 +1,5 @@
-import { useMemo } from "react";
-import { Marked } from "marked";
-import type { Section } from "../types";
-
-const marked = new Marked({ gfm: true, breaks: false });
-
-marked.use({
-  renderer: {
-    link(token) {
-      const href = token.href ?? "";
-      const title = token.title ? ` title="${escapeHtml(token.title)}"` : "";
-      const text = this.parser.parseInline(token.tokens);
-      const isExternal = /^https?:\/\//i.test(href);
-      const attrs = isExternal ? ` target="_blank" rel="noopener noreferrer"` : "";
-      return `<a href="${escapeAttr(href)}"${title}${attrs}>${text}</a>`;
-    },
-  },
-});
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function escapeAttr(s: string): string {
-  return escapeHtml(s);
-}
+import type { Section } from "../content/types";
+import { BlockRenderer } from "./blocks";
 
 type Props = {
   section: Section;
@@ -39,8 +10,6 @@ type Props = {
 };
 
 export function SectionView({ section, isDone, onToggle, onMarkAndNext, hasNext }: Props) {
-  const html = useMemo(() => marked.parse(section.content) as string, [section.content]);
-
   return (
     <article className="section">
       <header className="section-head">
@@ -54,7 +23,11 @@ export function SectionView({ section, isDone, onToggle, onMarkAndNext, hasNext 
           {isDone ? "✓ Studied" : "Mark as studied"}
         </button>
       </header>
-      <div className="section-body prose" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="section-body">
+        {section.blocks.map((block, i) => (
+          <BlockRenderer key={i} block={block} />
+        ))}
+      </div>
       <footer className="section-foot">
         <button
           type="button"

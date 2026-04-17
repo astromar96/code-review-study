@@ -1,15 +1,32 @@
-import type { Part } from "../types";
+import type { Part } from "../content/types";
 
 type Props = {
   parts: Part[];
   stats: { done: number; total: number; pct: number };
   isDone: (id: string) => boolean;
   onResume: () => void;
+  onGoHome: () => void;
+  onOpenDrawer?: () => void;
+  showHome: boolean;
 };
 
-export function ProgressHeader({ parts, stats, isDone, onResume }: Props) {
+export function ProgressHeader({ parts, stats, isDone, onResume, onGoHome, onOpenDrawer, showHome }: Props) {
   return (
     <div className="progress-header">
+      <button
+        type="button"
+        className="btn-menu"
+        onClick={onOpenDrawer}
+        aria-label="Open contents"
+      >
+        <span aria-hidden="true">☰</span>
+      </button>
+      {showHome ? (
+        <button type="button" className="btn-home" onClick={onGoHome} aria-label="Go to home">
+          <span aria-hidden="true">⌂</span>
+          <span className="btn-home-label">Home</span>
+        </button>
+      ) : null}
       <div className="progress-main">
         <div className="progress-main-label">
           Progress <strong>{stats.done}</strong> / {stats.total}{" "}
@@ -47,9 +64,5 @@ export function ProgressHeader({ parts, stats, isDone, onResume }: Props) {
 function shortPartTitle(t: string): string {
   const m = t.match(/^Part (\d+)/);
   if (m) return `Part ${m[1]}`;
-  if (t.startsWith("Quick reference: reviewer")) return "Rvwr list";
-  if (t.startsWith("Quick reference: author")) return "Author list";
-  if (t.startsWith("Appendix")) return "Appendix";
-  if (t === "Introduction") return "Intro";
   return t.length > 14 ? t.slice(0, 12) + "…" : t;
 }

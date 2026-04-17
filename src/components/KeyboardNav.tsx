@@ -1,13 +1,14 @@
 import { useEffect } from "react";
-import { ALL_SECTIONS, neighborSections } from "../data/guide";
+import { ALL_SECTIONS, neighborSections } from "../content";
+import type { Route } from "../hooks/useHashRoute";
 
 type Props = {
-  activeId: string | null;
-  onNavigate: (id: string) => void;
+  route: Route;
+  onNavigate: (route: Route) => void;
   onToggle: (id: string) => void;
 };
 
-export function KeyboardNav({ activeId, onNavigate, onToggle }: Props) {
+export function KeyboardNav({ route, onNavigate, onToggle }: Props) {
   useEffect(() => {
     const isTyping = (el: EventTarget | null): boolean => {
       if (!(el instanceof HTMLElement)) return false;
@@ -23,8 +24,9 @@ export function KeyboardNav({ activeId, onNavigate, onToggle }: Props) {
     const handler = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isTyping(e.target)) return;
-      if (!activeId) return;
+      if (route.kind !== "section") return;
 
+      const activeId = route.id;
       const { prev, next } = neighborSections(activeId);
 
       switch (e.key) {
@@ -32,14 +34,14 @@ export function KeyboardNav({ activeId, onNavigate, onToggle }: Props) {
         case "ArrowRight":
           if (next) {
             e.preventDefault();
-            onNavigate(next.id);
+            onNavigate({ kind: "section", id: next.id });
           }
           break;
         case "k":
         case "ArrowLeft":
           if (prev) {
             e.preventDefault();
-            onNavigate(prev.id);
+            onNavigate({ kind: "section", id: prev.id });
           }
           break;
         case "x":
@@ -49,13 +51,13 @@ export function KeyboardNav({ activeId, onNavigate, onToggle }: Props) {
         case "g":
           if (ALL_SECTIONS[0]) {
             e.preventDefault();
-            onNavigate(ALL_SECTIONS[0].id);
+            onNavigate({ kind: "section", id: ALL_SECTIONS[0].id });
           }
           break;
         case "G":
           if (ALL_SECTIONS.length > 0) {
             e.preventDefault();
-            onNavigate(ALL_SECTIONS[ALL_SECTIONS.length - 1].id);
+            onNavigate({ kind: "section", id: ALL_SECTIONS[ALL_SECTIONS.length - 1].id });
           }
           break;
       }
@@ -63,7 +65,7 @@ export function KeyboardNav({ activeId, onNavigate, onToggle }: Props) {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [activeId, onNavigate, onToggle]);
+  }, [route, onNavigate, onToggle]);
 
   return null;
 }
